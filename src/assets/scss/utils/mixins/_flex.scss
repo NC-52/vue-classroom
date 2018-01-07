@@ -1,0 +1,15 @@
+/*
+ *  @param {string} $direction - v for vertical, h for horizontal, and all
+ *
+ */
+@mixin flex-center($direction) {
+  display: flex;
+  @if $direction == v {
+    align-items: center;
+  } @else if $direction == h {
+    justify-content: center;
+  } @else if $direction == all {
+    justify-content: center;
+    align-items: center;
+  }
+}
