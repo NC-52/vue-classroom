@@ -1,12 +1,14 @@
 <template lang="html">
-  <el-container class="container" v-loading="loading.list">
+  <el-container class="container">
     <el-row class="row">
       <el-header>
         <div>
           <span class="page-title">
             {{ classroomName }}
           </span>
-          <el-button type="primary" icon="el-icon-edit" @click="openClassroomForm({isNew: false})"></el-button>
+          <el-button type="primary" icon="el-icon-edit" @click="openClassroomForm({isNew: false})">
+            編輯
+          </el-button>
           <el-button @click="openStudentForm({isNew: true})">
             新增學生
           </el-button>
@@ -16,7 +18,7 @@
         </div>
       </el-header>
 
-      <div class="container">
+      <div class="container" v-loading="loading.list">
         <el-table
           :data="students"
           empty-text="查無資料">
@@ -45,10 +47,13 @@
         </el-table>
       </div>
 
+      <div class="pie-chart-wrapper">
+        <canvas ref="chart"></canvas>
+      </div>
+
       <el-dialog
         :title="classroomFormTitle"
-        :visible.sync="dialogVisible.classroom"
-        :modal="true">
+        :visible.sync="dialogVisible.classroom">
         <el-form :model="classroomForm" ref="classroomForm" label-width="100px">
           <el-form-item label="班級名稱" prop="name">
             <el-input v-model="classroomForm.name"></el-input>
@@ -71,8 +76,7 @@
 
       <el-dialog
         :title="studentFormTitle"
-        :visible.sync="dialogVisible.student"
-        :modal="true">
+        :visible.sync="dialogVisible.student">
         <div>
           <el-container class="container">
             <div class="student-create-form">
@@ -114,6 +118,7 @@
 import Vue from 'vue'
 import { mapState, mapGetters, mapActions } from 'vuex'
 import axios from 'axios'
+import Chart from 'chart.js'
 import { student as StudentAttr } from '@/attributes'
 import StudentList from '@/components/StudentList'
 import { student as StudentRoutes, classroom as ClassroomRoutes } from '@/api'
@@ -234,7 +239,7 @@ export default {
       axios.get(apiRoute)
         .then(({ data }) => {
           this.students = data.data
-          this.classroomName = data.classroomName
+          // this.classroomName = data.classroomName
           Vue.set(this.loading, 'list', false)
         })
         .catch(() => {
@@ -271,13 +276,19 @@ export default {
 
       axios.post(apiRoute, payload)
         .then(() => {
-          this.$alert('成功新增學生', '成功')
-          this.loadStudents()
+          this.$message.success('成功新增學生', '成功')
+
+          if (payload.class_id === this.classId) {
+            this.loadStudents()
+          } else {
+            this.$router.push({ name: 'classroom.show', params: { classId: payload.class_id } })
+          }
+
           Vue.set(this.dialogVisible, 'student', false)
           Vue.set(this.loading, 'editStudent', false)
         })
         .catch(({ message }) => {
-          this.$alert(message.data, '失敗')
+          this.$message.error(message.data, '失敗')
           Vue.set(this.dialogVisible, 'student', false)
           Vue.set(this.loading, 'editStudent', false)
         })
@@ -291,13 +302,19 @@ export default {
 
       axios.put(apiRoute, payload)
         .then(() => {
-          this.$alert('成功更新學生', '成功')
-          this.loadStudents()
+          this.$message.success('成功更新學生', '成功')
+
+          if (payload.class_id === this.classId) {
+            this.loadStudents()
+          } else {
+            this.$router.push({ name: 'classroom.show', params: { classId: payload.class_id } })
+          }
+
           Vue.set(this.dialogVisible, 'student', false)
           Vue.set(this.loading, 'editStudent', false)
         })
         .catch(({ message }) => {
-          this.$alert(message.data, '更新學生失敗')
+          this.$message.error(message.data, '更新學生失敗')
           Vue.set(this.dialogVisible, 'student', false)
           Vue.set(this.loading, 'editStudent', false)
         })
@@ -329,13 +346,13 @@ export default {
 
       axios.post(apiRoute, payload)
         .then(({ data }) => {
-          this.$message('創建教室成功！')
+          this.$message.success('創建教室成功！')
           this.$router.push({ name: 'classroom.show', params: { classId: data.class_id } })
           Vue.set(this.dialogVisible, 'classroom', false)
           Vue.set(this.loading, 'editClassroom', false)
         })
         .catch(_ => {
-          this.$message('創建教室失敗')
+          this.$message.error('創建教室失敗')
           Vue.set(this.loading, 'editClassroom', false)
         })
     },
@@ -348,16 +365,28 @@ export default {
 
       axios.put(apiRoute, payload)
         .then(_ => {
-          this.$message('更新教室成功！')
+          this.$message({
+            message: '更新教室成功！',
+            type: 'success'
+          })
           this.loadStudents()
           this.loadClassrooms()
           Vue.set(this.dialogVisible, 'classroom', false)
           Vue.set(this.loading, 'editClassroom', false)
         })
         .catch(_ => {
-          this.$message('更新教室失敗')
+          this.$message.error('更新教室失敗')
           Vue.set(this.loading, 'editClassroom', false)
         })
+    },
+
+    createPie () {
+      new Chart(this.$ref.chart.getContext('2d'), {
+        type: 'pie',
+        data: {
+          dataset: this.students.map(s => s.name)
+        }
+      })
     }
   },
 
@@ -370,6 +399,7 @@ export default {
 
   mounted () {
     this.loadStudents()
+    this.createPie()
   }
 }
 </script>

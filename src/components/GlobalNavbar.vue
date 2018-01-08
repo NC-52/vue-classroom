@@ -18,13 +18,14 @@
                 教室<i class="el-icon-arrow-down el-icon--right"></i>
               </span>
               <el-dropdown-menu slot="dropdown">
-                <el-dropdown-item
+                <router-link
+                  :to="{ name: 'classroom.show', params: { classId: $key } }"
                   v-for="(classroom, $key) in classroomMap"
                   :key="classroom.id">
-                  <router-link :to="{ name: 'classroom.show', params: { classId: $key } }">
+                  <el-dropdown-item>
                     {{ classroom }}
-                  </router-link>
-                </el-dropdown-item>
+                  </el-dropdown-item>
+                </router-link>
               </el-dropdown-menu>
             </el-dropdown>
           </li>
