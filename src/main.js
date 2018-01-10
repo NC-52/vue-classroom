@@ -13,11 +13,12 @@ import { sync } from 'vuex-router-sync'
 import ElementUI from 'element-ui'
 import VueFloatLabel from 'vue-float-label'
 
+// Third party helper libraries
+import axios from 'axios'
+
 import App from './App'
 import router from './router'
 import VuexStore from './store'
-
-import axios from 'axios'
 
 Vue.config.productionTip = false
 
@@ -30,11 +31,11 @@ const store = new Vuex.Store(VuexStore)
 
 sync(store, router)
 
+// Set ajax header defaults in Axios
 axios.defaults.headers['X-Requested-With'] = 'XMLHttpRequest'
 axios.defaults.headers['Content-type'] = 'application/json'
 axios.defaults.headers['Accept'] = 'application/json'
 
-/* eslint-disable no-new */
 new Vue({
   store,
   router,

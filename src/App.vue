@@ -19,10 +19,11 @@ export default {
 </script>
 
 <style lang="scss">
+// import scss in assets
 @import "/assets/scss/app";
 
 #app {
-  font-family: 'Avenir', Helvetica, Arial, sans-serif;
+  font-family: 'Ping Fang TC', 'Avenir', Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   color: #2c3e50;

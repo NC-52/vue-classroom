@@ -1,11 +1,11 @@
 <template lang="html">
-  <el-container class="container">
-    <el-row class="row">
-      <el-header>
+  <div class="container">
+    <el-row>
+      <el-header class="header-classroom">
+        <h1 class="page-title">
+          {{ classroomName }}
+        </h1>
         <div>
-          <span class="page-title">
-            {{ classroomName }}
-          </span>
           <el-button type="primary" icon="el-icon-edit" @click="openClassroomForm({isNew: false})">
             編輯
           </el-button>
@@ -18,7 +18,7 @@
         </div>
       </el-header>
 
-      <div class="container" v-loading="loading.list">
+      <div class="container" v-loading="classroomLoading.studentList">
         <el-table
           :data="students"
           empty-text="查無資料">
@@ -47,10 +47,6 @@
         </el-table>
       </div>
 
-      <div class="pie-chart-wrapper">
-        <canvas ref="chart"></canvas>
-      </div>
-
       <el-dialog
         :title="classroomFormTitle"
         :visible.sync="dialogVisible.classroom">
@@ -61,13 +57,13 @@
           <el-form-item>
             <el-button
               type="primary"
-              v-loading="loading.editClassroom"
-              v-if="loading.editClassroom">
+              v-loading="classroomLoading.edit"
+              v-if="classroomLoading.edit">
               <span>處理中...</span>
             </el-button>
             <el-button type="primary"
               @click="editClassroom"
-              v-if="!loading.editClassroom">
+              v-if="!classroomLoading.edit">
               <span>{{ classroomFormTitle }}</span>
             </el-button>
           </el-form-item>
@@ -100,9 +96,9 @@
                   </el-select>
                 </el-form-item>
                 <el-form-item>
-                  <el-button type="primary" @click="submitStudentForm('studentForm')" v-loading="loading.editStudent">
-                    <span v-if="loading.editStudent">處理中...</span>
-                    <span v-if="!loading.editStudent">{{ studentFormTitle }}</span>
+                  <el-button type="primary" @click="submitStudentForm('studentForm')" v-loading="studentLoading.edit">
+                    <span v-if="studentLoading.edit">處理中...</span>
+                    <span v-if="!studentLoading.edit">{{ studentFormTitle }}</span>
                   </el-button>
                 </el-form-item>
               </el-form>
@@ -111,29 +107,47 @@
         </div>
       </el-dialog>
     </el-row>
-  </el-container>
+
+    <el-row class="mt-lg">
+      <el-col :span="24">
+        <el-header>
+          <h1 class="page-title">學生分析</h1>
+        </el-header>
+      </el-col>
+      <el-col :span="12">
+        <div class="pie-chart-wrapper">
+          <ChartPie :pie-config="pieConfig" />
+        </div>
+      </el-col>
+      <el-col :span="12">
+        <div class="analysis">
+          總共: {{ students.length }}位學生
+        </div>
+      </el-col>
+    </el-row>
+  </div>
 </template>
 
 <script>
 import Vue from 'vue'
 import { mapState, mapGetters, mapActions } from 'vuex'
-import axios from 'axios'
-import Chart from 'chart.js'
-import { student as StudentAttr } from '@/attributes'
-import StudentList from '@/components/StudentList'
-import { student as StudentRoutes, classroom as ClassroomRoutes } from '@/api'
+import { student as StudentAttr, color as colors } from '@/attributes'
+import studentRules from '@/attributes/rules/student'
+import ChartPie from '@/components/chart/pie'
 
 export default {
   components: {
-    StudentList
+    ChartPie
   },
   props: {
-    classId: String
+    classId: [Number, String]
   },
   data () {
     return {
-      isNewStudent: false,
-      isNewClassroom: false,
+      isNew: {
+        student: false,
+        classroom: false
+      },
       dialogVisible: {
         student: false,
         classroom: false
@@ -146,36 +160,21 @@ export default {
         email: '',
         class_id: ''
       },
-      students: [],
-      rules: {
-        first_name: [
-          { required: true, message: '請輸入學生名字', trigger: 'blur' },
-          { min: 1, max: 100, message: '請輸入 1 到 100 個字元', trigger: 'blur' }
-        ],
-        last_name: [
-          { required: true, message: '請輸入學生姓氏', trigger: 'blur' },
-          { min: 1, max: 100, message: '請輸入 1 到 100 個字元', trigger: 'blur' }
-        ],
-        email: [
-          { required: true, message: '請輸入 Email', trigger: 'blur' },
-          { type: 'email', message: '請輸入正確 Email', trigger: 'blur,change' }
-        ],
-        class_id: [
-          { required: true, message: '請選擇班級', trigger: 'blur' }
-        ]
-      },
-      loading: {
-        editStudent: false,
-        editClassroom: false,
-        deleteClassroom: false
-      }
+      rules: studentRules
     }
   },
 
   computed: {
-    ...mapState('Classroom', [
-      'classrooms'
-    ]),
+    ...mapState('Classroom', {
+      classrooms: (state) => state.classrooms,
+      classroomLoading: (state) => state.loading,
+      students: (state) => state.students
+    }),
+
+    ...mapState('Student', {
+      studentLoading: (state) => state.loading
+    }),
+
     ...mapGetters('Classroom', [
       'classroomMap'
     ]),
@@ -185,12 +184,12 @@ export default {
     },
 
     studentFormTitle () {
-      let pre = this.isNewStudent ? '新增' : '修改'
+      let pre = this.isNew.student ? '新增' : '修改'
       return `${pre}學生`
     },
 
     classroomFormTitle () {
-      let pre = this.isNewClassroom ? '新增' : '修改'
+      let pre = this.isNew.classroom ? '新增' : '修改'
       return `${pre}班級`
     },
 
@@ -214,14 +213,43 @@ export default {
         class_id: currentClassId,
         name: this.classroomMap[currentClassId]
       }
+    },
+
+    pieConfig () {
+      return {
+        type: 'pie',
+        data: {
+          datasets: [
+            {
+              data: this.students.map(s => 1),
+              backgroundColor: colors.main
+            }
+          ],
+          labels: this.students.map(s => `${s.first_name} ${s.last_name}`)
+        },
+        options: {
+          responsive: true,
+          legend: {
+            display: false
+          },
+          title: {
+            display: false
+          }
+        }
+      }
     }
   },
   methods: {
     ...mapActions('Classroom', [
-      'loadClassrooms'
+      'loadClassrooms', 'createClassroom', 'updateClassroom', 'loadClassStudents'
     ]),
+
+    ...mapActions('Student', [
+      'createStudent', 'updateStudent', 'showStudent'
+    ]),
+
     openStudentForm ({ isNew, student }) {
-      this.isNewStudent = isNew || false
+      Vue.set(this.isNew, 'student', isNew || false)
 
       if (isNew) {
         this.studentForm = {}
@@ -232,19 +260,8 @@ export default {
       Vue.set(this.dialogVisible, 'student', true)
     },
 
-    loadStudents () {
-      Vue.set(this.loading, 'list', true)
-
-      let apiRoute = ClassroomRoutes.show(this.classId)
-      axios.get(apiRoute)
-        .then(({ data }) => {
-          this.students = data.data
-          // this.classroomName = data.classroomName
-          Vue.set(this.loading, 'list', false)
-        })
-        .catch(() => {
-          Vue.set(this.loading, 'list', false)
-        })
+    handleLoadClassStudents () {
+      this.loadClassStudents(this.classId)
     },
 
     getAttr (input, attr) {
@@ -253,14 +270,14 @@ export default {
     },
 
     submitStudentForm (formName) {
-      if (this.loading.editStudent) return
+      if (this.studentLoading.edit) return
 
       this.$refs[formName].validate((valid) => {
         if (valid) {
-          if (this.isNewStudent) {
-            this.createStudent()
+          if (this.isNew.student) {
+            this.handleCreateStudent()
           } else {
-            this.updateStudent()
+            this.handleUpdateStudent()
           }
         } else {
           return false
@@ -268,60 +285,47 @@ export default {
       })
     },
 
-    createStudent () {
+    handleCreateStudent () {
       let payload = this.studentForm
-      let apiRoute = StudentRoutes.create()
+      let successCallback = (data) => {
+        this.$message.success('成功新增學生', '成功')
+        if (payload.class_id === this.classId) {
+          this.handleLoadClassStudents()
+        } else {
+          this.handleLoadClassStudents()
+          this.$router.push({ name: 'classroom.show', params: { classId: payload.class_id } })
+        }
+        Vue.set(this.dialogVisible, 'student', false)
+      }
+      let errorCallback = () => {
+        this.$message.error('新增學生失敗', '失敗')
+        Vue.set(this.dialogVisible, 'student', false)
+      }
 
-      Vue.set(this.loading, 'editStudent', true)
-
-      axios.post(apiRoute, payload)
-        .then(() => {
-          this.$message.success('成功新增學生', '成功')
-
-          if (payload.class_id === this.classId) {
-            this.loadStudents()
-          } else {
-            this.$router.push({ name: 'classroom.show', params: { classId: payload.class_id } })
-          }
-
-          Vue.set(this.dialogVisible, 'student', false)
-          Vue.set(this.loading, 'editStudent', false)
-        })
-        .catch(({ message }) => {
-          this.$message.error(message.data, '失敗')
-          Vue.set(this.dialogVisible, 'student', false)
-          Vue.set(this.loading, 'editStudent', false)
-        })
+      this.createStudent({ payload, successCallback, errorCallback })
     },
 
-    updateStudent () {
+    handleUpdateStudent () {
       let payload = this.studentForm
-      let apiRoute = StudentRoutes.update(payload.id)
+      let successCallback = (data) => {
+        this.$message.success('成功更新學生', '成功')
+        if (payload.class_id === this.classId) {
+          this.handleLoadClassStudents()
+        } else {
+          this.$router.push({ name: 'classroom.show', params: { classId: payload.class_id } })
+        }
+        Vue.set(this.dialogVisible, 'student', false)
+      }
+      let errorCallback = () => {
+        this.$message.error('更新學生失敗', '失敗')
+        Vue.set(this.dialogVisible, 'student', false)
+      }
 
-      Vue.set(this.loading, 'editStudent', true)
-
-      axios.put(apiRoute, payload)
-        .then(() => {
-          this.$message.success('成功更新學生', '成功')
-
-          if (payload.class_id === this.classId) {
-            this.loadStudents()
-          } else {
-            this.$router.push({ name: 'classroom.show', params: { classId: payload.class_id } })
-          }
-
-          Vue.set(this.dialogVisible, 'student', false)
-          Vue.set(this.loading, 'editStudent', false)
-        })
-        .catch(({ message }) => {
-          this.$message.error(message.data, '更新學生失敗')
-          Vue.set(this.dialogVisible, 'student', false)
-          Vue.set(this.loading, 'editStudent', false)
-        })
+      this.updateStudent({ payload, successCallback, errorCallback })
     },
 
     openClassroomForm ({ isNew }) {
-      this.isNewClassroom = isNew || false
+      Vue.set(this.isNew, 'classroom', isNew || false)
       this.classroomForm = isNew
         ? {}
         : this.classroomFormProp
@@ -330,83 +334,106 @@ export default {
     },
 
     editClassroom () {
-      if (this.isNewClassroom) {
-        this.createClassroom()
-        // this.$router.push({ name: 'classrom.show', params: { id:  }})
+      if (this.isNew.classroom) {
+        this.handleCreateClassroom()
       } else {
-        this.updateClassroom()
+        this.handleUpdateClassroom()
       }
     },
 
-    createClassroom () {
-      Vue.set(this.loading, 'editClassroom', true)
-
-      let apiRoute = ClassroomRoutes.create()
+    handleCreateClassroom () {
       let payload = this.classroomForm
 
-      axios.post(apiRoute, payload)
-        .then(({ data }) => {
-          this.$message.success('創建教室成功！')
-          this.$router.push({ name: 'classroom.show', params: { classId: data.class_id } })
-          Vue.set(this.dialogVisible, 'classroom', false)
-          Vue.set(this.loading, 'editClassroom', false)
-        })
-        .catch(_ => {
-          this.$message.error('創建教室失敗')
-          Vue.set(this.loading, 'editClassroom', false)
-        })
+      let successCallback = (data) => {
+        this.$message.success('創建班級成功！')
+        this.$router.push({ name: 'classroom.show', params: { classId: data.class_id } })
+        Vue.set(this.dialogVisible, 'classroom', false)
+      }
+      let errorCallback = () => {
+        this.$message.error('創建班級失敗')
+      }
+
+      this.createClassroom({ payload, successCallback, errorCallback })
     },
 
-    updateClassroom () {
-      Vue.set(this.loading, 'editClassroom', true)
-
-      let apiRoute = ClassroomRoutes.update(this.classId)
-      let payload = this.classroomForm
-
-      axios.put(apiRoute, payload)
-        .then(_ => {
-          this.$message({
-            message: '更新教室成功！',
-            type: 'success'
-          })
-          this.loadStudents()
-          this.loadClassrooms()
-          Vue.set(this.dialogVisible, 'classroom', false)
-          Vue.set(this.loading, 'editClassroom', false)
+    handleUpdateClassroom () {
+      let payload = { ...this.classroomForm, id: this.classId }
+      let successCallback = () => {
+        this.$message({
+          message: '更新班級成功！',
+          type: 'success'
         })
-        .catch(_ => {
-          this.$message.error('更新教室失敗')
-          Vue.set(this.loading, 'editClassroom', false)
-        })
+        this.handleLoadClassStudents()
+        this.loadClassrooms()
+        Vue.set(this.dialogVisible, 'classroom', false)
+      }
+      let errorCallback = () => {
+        this.$message.error('更新班級失敗')
+      }
+
+      this.updateClassroom({ payload, successCallback, errorCallback })
     },
 
-    createPie () {
-      new Chart(this.$ref.chart.getContext('2d'), {
-        type: 'pie',
-        data: {
-          dataset: this.students.map(s => s.name)
+    handleQueryString (studentId) {
+      if (studentId) {
+        let successCallback = (data) => {
+          this.openStudentForm({ isNew: false, student: data.data })
         }
-      })
+        let errorCallback = (response) => {
+          this.$message({
+            message: response.message,
+            type: 'error'
+          })
+        }
+        this.showStudent({ id: studentId, successCallback, errorCallback })
+      }
     }
   },
 
   watch: {
     classId () {
       this.loadClassrooms()
-      this.loadStudents()
+      this.handleLoadClassStudents()
     }
   },
 
+  beforeRouteUpdate (to, from, next) {
+    let studentId = to.query.student
+
+    if (studentId) {
+      this.handleQueryString(studentId)
+    }
+
+    next()
+  },
+
   mounted () {
-    this.loadStudents()
-    this.createPie()
+    this.handleLoadClassStudents()
+    this.handleQueryString(
+      this.$route.query.student
+    )
   }
 }
 </script>
 
 <style lang="scss" scoped>
 .page-title {
+  display: inline;
   font-size: 28px;
+  vertical-align: middle;
+  margin-right: 15px;
+  margin-bottom: 0;
+}
+
+.header-classroom {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 80px;
+
+  @media screen and (min-width: 768px) {
+    flex-direction: row;
+  }
 }
 
 .student-create-form {
@@ -423,5 +450,14 @@ export default {
   position: absolute;
   top: 0;
   right: 0;
+}
+
+.pie-chart-wrapper {
+  width: 600px;
+}
+
+.analysis {
+  display: flex;
+  align-items: flex-end;
 }
 </style>

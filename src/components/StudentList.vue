@@ -10,11 +10,10 @@
         v-for="studentKey of studentKeys"
         :label="getAttr(studentKey)"
         align="center"
-        sortable
         :key="studentKey.id">
         <template slot-scope="scope">
           <span
-            v-if="isEditing.rowIndex !== scope.$index"
+            v-if="(isEditing.rowIndex !== scope.$index) || (studentKey === 'id')"
             @dblclick="toggleEditing(scope.$index)">
             {{ scope.row[studentKey] }}
           </span>
@@ -129,12 +128,14 @@ export default {
       Vue.set(this.isEditing, 'rowIndex', rowIndex)
     },
     editStudent (rowData) {
-      let { $index, id } = rowData
+      let { id } = rowData
       let { loading, isEditing, students } = this
+      let student = this.students.filter(s => s.id === id)[0]
       Vue.set(this.loading, 'update', true)
+
       this.updateStudent({
         id,
-        payload: students[$index],
+        payload: student,
         successCallback: () => {
           Vue.set(loading, 'update', false)
           Vue.set(isEditing, 'rowIndex', '')
@@ -144,8 +145,6 @@ export default {
           Vue.set(isEditing, 'rowIndex', '')
         }
       })
-      // this.students[$index] = this.editing
-      // Vue.set(this.isEditing, 'rowIndex', '')
     }
   },
   mounted () {

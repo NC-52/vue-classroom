@@ -10,7 +10,7 @@ import PageNotFound from '@/components/PageNotFound'
 let Routes = [
   {
     path: '/',
-    name: 'Homepage',
+    name: 'homepage',
     component: Homepage
   },
   Student,

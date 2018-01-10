@@ -4,5 +4,5 @@ export default {
   // classroom: '班級',
   first_name: '名',
   last_name: '姓',
-  email: 'email'
+  email: 'Email'
 }
