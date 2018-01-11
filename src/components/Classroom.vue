@@ -1,6 +1,6 @@
 <template lang="html">
   <div class="container">
-    <el-row>
+    <el-row class="row">
       <el-header class="header-classroom">
         <h1 class="page-title">
           {{ classroomName }}
@@ -108,19 +108,19 @@
       </el-dialog>
     </el-row>
 
-    <el-row class="mt-lg">
+    <el-row class="row mt-lg">
       <el-col :span="24">
-        <el-header>
+        <el-header class="header-analysis">
           <h1 class="page-title">學生分析</h1>
         </el-header>
       </el-col>
-      <el-col :span="12">
-        <div class="pie-chart-wrapper">
+      <el-col :span="isMobile ? 24 : 12">
+        <div class="pie-chart-wrapper" :width="isMobile ? windowWidth : '600px'">
           <ChartPie :pie-config="pieConfig" />
         </div>
       </el-col>
-      <el-col :span="12">
-        <div class="analysis">
+      <el-col :span="isMobile ? 24 : 12">
+        <div class="analysis-text">
           總共: {{ students.length }}位學生
         </div>
       </el-col>
@@ -179,8 +179,16 @@ export default {
       studentLoading: (state) => state.loading
     }),
 
+    ...mapState('Site', {
+      windowWidth: (state) => state.windowSize.width
+    }),
+
     ...mapGetters('Classroom', [
       'classroomMap'
+    ]),
+
+    ...mapGetters('Site', [
+      'isMobile'
     ]),
 
     classroomName () {
@@ -435,27 +443,36 @@ export default {
   vertical-align: middle;
   margin-right: 15px;
   margin-bottom: 0;
+
+  @media screen and (max-width: 768px) {
+    text-align: center;
+  }
 }
 
-.header-classroom {
+.el-header {
   display: flex;
   flex-direction: column;
   align-items: center;
-  height: 80px;
+  height: 80px !important;
+  width: 100%;
 
   @media screen and (min-width: 768px) {
     flex-direction: row;
   }
 }
 
-.student-create-form {
-  width: 100%;
+.header-classroom {
+  @media screen and (max-width: 768px) {
+    height: 100px !important;
+  }
+
+  .page-title {
+    margin-bottom: 10px;
+  }
 }
 
-@media screen and (max-width: 768px) {
-  .el-dialog {
-    width: calc(100vw - 20px);
-  }
+.student-create-form {
+  width: 100%;
 }
 
 .position-right {
@@ -465,11 +482,13 @@ export default {
 }
 
 .pie-chart-wrapper {
-  width: 600px;
+  // width: 600px;
 }
 
-.analysis {
+.analysis-text {
   display: flex;
   align-items: flex-end;
+  justify-content: center;
+  margin: 20px 0;
 }
 </style>

@@ -8,12 +8,31 @@
 </template>
 
 <script>
+import { mapMutations } from 'vuex'
 import GlobalNavbar from '@/components/GlobalNavbar'
 
 export default {
   name: 'app',
   components: {
     GlobalNavbar
+  },
+  methods: {
+    ...mapMutations('Site', [
+      'updateWindow'
+    ]),
+
+    listenWindowResize () {
+      window.addEventListener('resize', ({ target }) => {
+        let _window = {
+          width: target.innerWidth,
+          height: target.innerHeight
+        }
+        this.updateWindow(_window)
+      })
+    }
+  },
+  mounted () {
+    this.listenWindowResize()
   }
 }
 </script>
