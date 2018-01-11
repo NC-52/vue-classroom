@@ -129,7 +129,7 @@ export default {
     },
     editStudent (rowData) {
       let { id } = rowData
-      let { loading, isEditing, students } = this
+      let { loading, isEditing } = this
       let student = this.students.filter(s => s.id === id)[0]
       Vue.set(this.loading, 'update', true)
 
