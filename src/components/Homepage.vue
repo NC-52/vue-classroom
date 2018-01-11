@@ -10,7 +10,6 @@
         align="center"
         fixed="right">
         <template slot-scope="scope">
-          <!-- Button to edit -->
           <el-button
             @click="goToClassroom(scope.row)">
             前往
@@ -32,11 +31,7 @@ export default {
   computed: {
     ...mapState('Classroom', [
       'classrooms'
-    ]),
-
-    classroomKeys () {
-      return Object.keys(this.classrooms)
-    }
+    ])
   },
   methods: {
     goToClassroom ({ id }) {

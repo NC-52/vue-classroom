@@ -4,5 +4,5 @@ const prodEnv = require('./prod.env')
 
 module.exports = merge(prodEnv, {
   NODE_ENV: '"development"',
-  API_DOMAIN: '"https://still-everglades-62877.herokuapp.com/api"'
+  API_DOMAIN: '"http://localhost:3000/api"'
 })

@@ -9,6 +9,9 @@ export default {
   props: {
     pieConfig: Object
   },
+  data () {
+    pieInstance: null
+  },
   methods: {
     createPie () {
       let pieDOM = this.$refs.chart.getContext('2d')
@@ -18,6 +21,7 @@ export default {
   },
   watch: {
     pieConfig () {
+      this.pieInstance.destroy()
       this.createPie()
     }
   }

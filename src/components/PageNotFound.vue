@@ -5,7 +5,7 @@
       <h1>Page Not Found</h1>
     </header>
     <div>
-      <router-link :to="{ name: 'home' }">
+      <router-link :to="{ name: 'homepage' }">
         However, you can come back home!
       </router-link>
       <p>

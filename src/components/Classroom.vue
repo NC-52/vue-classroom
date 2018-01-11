@@ -9,11 +9,11 @@
           <el-button type="primary" icon="el-icon-edit" @click="openClassroomForm({isNew: false})">
             編輯
           </el-button>
-          <el-button @click="openStudentForm({isNew: true})">
-            新增學生
-          </el-button>
           <el-button @click="openClassroomForm({isNew: true})">
             新增班級
+          </el-button>
+          <el-button @click="openStudentForm({isNew: true})">
+            新增學生
           </el-button>
         </div>
       </el-header>
