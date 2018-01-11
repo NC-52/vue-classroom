@@ -1,5 +1,4 @@
-// const domain = 'https://still-everglades-62877.herokuapp.com/api/classrooms'
-const domain = 'http://localhost:3000/api/classrooms'
+const domain = `${process.env.API_DOMAIN}/classrooms`
 
 export default {
   index () {
