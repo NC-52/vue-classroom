@@ -50,7 +50,7 @@
       <el-dialog
         :title="classroomFormTitle"
         :visible.sync="dialogVisible.classroom">
-        <el-form :model="classroomForm" ref="classroomForm" label-width="100px">
+        <el-form :model="classroomForm" :rules="rules.classroom" ref="classroomForm" label-width="100px">
           <el-form-item label="班級名稱" prop="name">
             <el-input v-model="classroomForm.name"></el-input>
           </el-form-item>
@@ -62,7 +62,7 @@
               <span>處理中...</span>
             </el-button>
             <el-button type="primary"
-              @click="editClassroom"
+              @click="submitClassroomForm('classroomForm')"
               v-if="!classroomLoading.edit">
               <span>{{ classroomFormTitle }}</span>
             </el-button>
@@ -76,7 +76,7 @@
         <div>
           <el-container class="container">
             <div class="student-create-form">
-              <el-form :model="studentForm" :rules="rules" ref="studentForm" label-width="100px">
+              <el-form :model="studentForm" :rules="rules.student" ref="studentForm" label-width="100px">
                 <el-form-item label="名字" prop="first_name">
                   <el-input v-model="studentForm.first_name"></el-input>
                 </el-form-item>
@@ -133,6 +133,7 @@ import Vue from 'vue'
 import { mapState, mapGetters, mapActions } from 'vuex'
 import { student as StudentAttr, color as colors } from '@/attributes'
 import studentRules from '@/attributes/rules/student'
+import claassroomRules from '@/attributes/rules/classroom'
 import ChartPie from '@/components/chart/pie'
 
 export default {
@@ -160,7 +161,10 @@ export default {
         email: '',
         class_id: ''
       },
-      rules: studentRules
+      rules: {
+        student: studentRules,
+        classroom: claassroomRules
+      }
     }
   },
 
@@ -333,12 +337,20 @@ export default {
       Vue.set(this.dialogVisible, 'classroom', true)
     },
 
-    editClassroom () {
-      if (this.isNew.classroom) {
-        this.handleCreateClassroom()
-      } else {
-        this.handleUpdateClassroom()
-      }
+    submitClassroomForm (formName) {
+      if (this.classroomLoading.edit) return
+
+      this.$refs[formName].validate((valid) => {
+        if (valid) {
+          if (this.isNew.claassroom) {
+            this.handleCreateClassroom()
+          } else {
+            this.handleUpdateClassroom()
+          }
+        } else {
+          return false
+        }
+      })
     },
 
     handleCreateClassroom () {

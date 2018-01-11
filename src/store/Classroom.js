@@ -65,9 +65,11 @@ export default {
 
       axios.post(apiRoute, payload)
         .then(({ data }) => {
-          commit('updateClassroom', data.data)
-          commit('updateLoading', { loadingKey: 'edit', status: false })
-          typeof successCallback === 'function' && successCallback(data)
+          setTimeout(_ => {
+            commit('updateClassroom', data.data)
+            commit('updateLoading', { loadingKey: 'edit', status: false })
+            typeof successCallback === 'function' && successCallback(data)
+          }, 500)
         })
         .catch(({ response }) => {
           commit('updateLoading', { loadingKey: 'edit', status: false })
@@ -81,9 +83,11 @@ export default {
 
       axios.put(apiRoute, payload)
         .then(({ data }) => {
-          commit('updateClassroom', data.data)
-          commit('updateLoading', { loadingKey: 'edit', status: false })
-          typeof successCallback === 'function' && successCallback(data)
+          setTimeout(_ => {
+            commit('updateClassroom', data.data)
+            commit('updateLoading', { loadingKey: 'edit', status: false })
+            typeof successCallback === 'function' && successCallback(data)
+          }, 500)
         })
         .catch(({ response }) => {
           commit('updateLoading', { loadingKey: 'edit', status: false })
