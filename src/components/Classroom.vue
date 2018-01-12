@@ -419,7 +419,6 @@ export default {
 
   beforeRouteUpdate (to, from, next) {
     let studentId = to.query.student
-    let classId = to.params.classId
 
     if (studentId) {
       this.handleQueryString(studentId)
