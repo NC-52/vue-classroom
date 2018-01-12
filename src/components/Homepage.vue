@@ -1,6 +1,6 @@
 <template>
-  <div class="container">
-    <el-table :data="classrooms" class="classroom-table">
+  <div class="container" v-loading="classroomLoading.classrooms">
+    <el-table :data="classrooms" class="classroom-table" empty-text="查無資料">
       <el-table-column
         prop="name"
         label="名稱"
@@ -29,9 +29,10 @@ export default {
     return {}
   },
   computed: {
-    ...mapState('Classroom', [
-      'classrooms'
-    ])
+    ...mapState('Classroom', {
+      classrooms: (state) => state.classrooms,
+      classroomLoading: (state) => state.loading
+    })
   },
   methods: {
     goToClassroom ({ id }) {
