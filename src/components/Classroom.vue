@@ -89,9 +89,10 @@
                 <el-form-item label="班級" prop="class_id">
                   <el-select v-model="studentForm.class_id" placeholder="請選擇">
                     <el-option
-                      :label="classroom"
-                      :value="$key"
-                      v-for="(classroom, $key) in classroomMap"
+                      :label="classroom.label"
+                      :value="classroom.value"
+                      v-for="classroom in classroomOptions"
+                      :default-first-option="true"
                       :key="classroom.id" />
                   </el-select>
                 </el-form-item>
@@ -161,6 +162,12 @@ export default {
         email: '',
         class_id: ''
       },
+      studentFormProp: {
+        first_name: '',
+        last_name: '',
+        email: '',
+        class_id: ''
+      },
       rules: {
         student: studentRules,
         classroom: claassroomRules
@@ -203,6 +210,16 @@ export default {
     classroomFormTitle () {
       let pre = this.isNew.classroom ? '新增' : '修改'
       return `${pre}班級`
+    },
+
+    classroomOptions () {
+      return Object.entries(this.classroomMap)
+        .map(([classId, name]) => {
+          return {
+            label: name,
+            value: classId
+          }
+        })
     },
 
     studentKeys () {
@@ -264,7 +281,7 @@ export default {
       Vue.set(this.isNew, 'student', isNew || false)
 
       if (isNew) {
-        this.studentForm = { class_id: this.classId }
+        this.studentForm = {}
       } else {
         this.studentForm = { ...student }
       }
@@ -367,6 +384,8 @@ export default {
       let successCallback = (data) => {
         this.$message.success('創建班級成功，開始新增學生吧！')
         this.$router.push({ name: 'classroom.show', params: { classId: data.class_id } })
+        this.studentForm = {}
+        this.loadClassrooms()
         Vue.set(this.dialogVisible, 'classroom', false)
       }
       let errorCallback = () => {
