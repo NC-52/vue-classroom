@@ -264,9 +264,9 @@ export default {
       Vue.set(this.isNew, 'student', isNew || false)
 
       if (isNew) {
-        this.studentForm = {}
+        this.studentForm = { class_id: this.classId }
       } else {
-        this.studentForm = student
+        this.studentForm = { ...student }
       }
 
       Vue.set(this.dialogVisible, 'student', true)
@@ -340,7 +340,7 @@ export default {
       Vue.set(this.isNew, 'classroom', isNew || false)
       this.classroomForm = isNew
         ? {}
-        : this.classroomFormProp
+        : { ...this.classroomFormProp }
 
       Vue.set(this.dialogVisible, 'classroom', true)
     },
@@ -350,7 +350,7 @@ export default {
 
       this.$refs[formName].validate((valid) => {
         if (valid) {
-          if (this.isNew.claassroom) {
+          if (this.isNew.classroom) {
             this.handleCreateClassroom()
           } else {
             this.handleUpdateClassroom()
@@ -365,7 +365,7 @@ export default {
       let payload = this.classroomForm
 
       let successCallback = (data) => {
-        this.$message.success('創建班級成功！')
+        this.$message.success('創建班級成功，開始新增學生吧！')
         this.$router.push({ name: 'classroom.show', params: { classId: data.class_id } })
         Vue.set(this.dialogVisible, 'classroom', false)
       }
