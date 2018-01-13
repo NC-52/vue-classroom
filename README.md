@@ -38,4 +38,4 @@ For a detailed explanation on how things work, check out the [guide](http://vuej
 You should host a backend api server for this frontend server. Please visit [rails-classroom](https://github.com/heyfinn/rails-classroom), clone and host for this project.
 
 ## Example
-[heyfinn.tech](heyfinn.tech)
+[classroom.heyfinn.xyz](classroom.heyfinn.xyz)
